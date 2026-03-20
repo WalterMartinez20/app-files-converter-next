@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+
+<rect width="256" height="256" rx="64" fill="#111"></rect>
+
+<!-- Flecha superior -->
+<path d="M40 128a88 88 0 0 1 150-60" stroke="#ffffff" stroke-width="22" fill="none" stroke-linecap="round"></path>
+
+<polygon points="190,36 236,70 190,104" fill="#8B5CF6"></polygon>
+
+<!-- Flecha inferior -->
+<path d="M216 128a88 88 0 0 1-150 60" stroke="#ffffff" stroke-width="22" fill="none" stroke-linecap="round"></path>
+
+<polygon points="66,220 20,186 66,152" fill="#8B5CF6"></polygon>
+
+</svg>
