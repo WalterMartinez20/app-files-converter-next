@@ -3,6 +3,7 @@ import { usePdfTools } from "./usePdfTools";
 import { PdfPageData } from "@/types/ui";
 import { PDFDocument } from "pdf-lib";
 import type { PDFDocumentProxy } from "pdfjs-dist";
+import { toast } from "react-hot-toast";
 
 // ¡OJO! Ya no hay importaciones de pdfjs aquí arriba.
 
@@ -136,14 +137,21 @@ export function useSplitUI() {
       100,
     );
 
+    const loadingToast = toast.loading("✂️ Dividiendo PDF...");
     setIsProcessing(true);
+
     const pagesToKeep = pages.map((p) => p.originalIndex);
     const success = await handleSplitPdf(pdfFile, pagesToKeep);
+
     setIsProcessing(false);
+    toast.dismiss(loadingToast);
 
     if (success) {
+      toast.success("✅ PDF dividido con éxito.");
       setPdfFile(null);
       setPages([]);
+    } else {
+      toast.error("❌ Error al dividir el PDF.");
     }
   };
 

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useConversions } from "./useConversions";
 import { StagedFile } from "@/types/ui";
+import { toast } from "react-hot-toast";
 
 export function useDashboardUI() {
   const {
@@ -54,14 +55,29 @@ export function useDashboardUI() {
       100,
     );
 
-    await Promise.all(
-      stagedFiles.map((staged) =>
-        handleUploadAndConvert(staged.file, staged.targetFormat),
-      ),
+    // 1. Iniciamos el Toast de carga (mostrando cuántas imágenes son)
+    const loadingToast = toast.loading(
+      `🖼️ Convirtiendo ${stagedFiles.length} imagen(es)...`,
     );
 
-    setStagedFiles([]);
-    setIsUploading(false);
+    try {
+      await Promise.all(
+        stagedFiles.map((staged) =>
+          handleUploadAndConvert(staged.file, staged.targetFormat),
+        ),
+      );
+
+      // 2. Si el Promise.all termina bien, mostramos éxito
+      toast.dismiss(loadingToast);
+      toast.success("Conversión completada con éxito.");
+      setStagedFiles([]); // Limpiamos la zona de subida
+    } catch (error) {
+      // 3. Si algo falla, mostramos el error
+      toast.dismiss(loadingToast);
+      toast.error("Ocurrió un error al convertir las imágenes.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return {

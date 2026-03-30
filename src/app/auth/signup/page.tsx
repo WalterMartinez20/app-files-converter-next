@@ -2,45 +2,27 @@
 
 "use client";
 
-import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-
+import { useAuthForm } from "@/hooks/useAuthForm";
 export default function SignupPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    fullName,
+    setFullName,
+    error,
+    isLoading,
+    success,
+    handleSignup,
+    redirectTo,
+    isAuthLoading,
+    user,
+    isAnonymous,
+  } = useAuthForm();
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
-    } else {
-      // Show success message asking user to verify email
-      setSuccess(true);
-      setIsLoading(false);
-    }
-  };
+  if (isAuthLoading || (user && !isAnonymous)) return null;
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6 bg-background-light dark:bg-background-dark">

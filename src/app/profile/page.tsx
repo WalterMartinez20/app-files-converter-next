@@ -1,51 +1,29 @@
 "use client";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import type { User } from "@supabase/supabase-js";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const { user, isLoading, isAnonymous } = useAuth();
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) setUser(user);
-      else router.push("/auth/login");
-      setIsLoading(false);
-    };
-    getUser();
-  }, [router, supabase]);
+    if (!isLoading && (!user || isAnonymous)) {
+      router.push("/auth/login");
+    }
+  }, [user, isAnonymous, isLoading, router]);
 
   const handleSignOut = async () => {
-    // 1. Cerramos sesión en el servidor de Supabase
     await supabase.auth.signOut();
-
-    // 2. LA OPCIÓN NUCLEAR: Borramos cualquier rastro del caché local donde Supabase esconde las sesiones
-    if (typeof window !== "undefined") {
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Borramos manualmente cualquier cookie residual de auth (por si acaso)
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-    }
-
-    // 3. Redirigimos forzando al navegador a pedir la página desde cero
-    window.location.href = "/";
+    router.replace("/"); // replace evita que el usuario vuelva con "back"
   };
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
         <Header />

@@ -2,6 +2,7 @@ import { useConversions } from "./useConversions";
 import { conversionService } from "@/services/conversionService";
 import { createClient } from "@/lib/supabase/client";
 import { Conversion } from "@/types/conversion";
+import { EditPdfPayload } from "@/types/editor";
 
 export function usePdfTools() {
   // Heredamos la base del hook principal para poder editar la cola visual
@@ -21,6 +22,9 @@ export function usePdfTools() {
   );
   const pdfSplits = conversions.filter(
     (c) => c.original_format === "pdf (split)",
+  );
+  const pdfEdits = conversions.filter(
+    (c) => c.original_format === "pdf (edit)",
   );
 
   const handleMergePdfs = async (files: File[]): Promise<boolean> => {
@@ -109,13 +113,58 @@ export function usePdfTools() {
     }
   };
 
+  const handleEditPdf = async (file: File, editData: EditPdfPayload) => {
+    const tempId = Math.random().toString(36).substring(7);
+
+    // Estado optimista en la UI
+    setConversions((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        file_name: file.name,
+        status: "pending",
+        original_format: "pdf",
+        target_format: "pdf (edit)",
+        storage_path: "",
+      } as Conversion, // ✨ ESTO SOLUCIONA EL ERROR
+    ]);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      // Enviamos toda la configuración de edición como un string JSON
+      formData.append("editData", JSON.stringify(editData));
+
+      const response = await fetch("/api/pdf/edit", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Edit failed");
+
+      const result = await response.json();
+      setConversions((prev) =>
+        prev.map((c) => (c.id === tempId ? result.conversion : c)),
+      );
+      return true;
+    } catch (err) {
+      console.error(err); // <-- Arregla el error de "err is defined but never used"
+      setConversions((prev) =>
+        prev.map((c) => (c.id === tempId ? { ...c, status: "failed" } : c)),
+      );
+      return false;
+    }
+  };
+
   return {
     pdfMerges,
     pdfSplits,
+    pdfEdits,
     isLoading,
     error,
     handleMergePdfs,
     handleSplitPdf,
+    handleEditPdf,
     downloadFile,
     removeConversionFromHistory,
   };

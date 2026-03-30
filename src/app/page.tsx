@@ -15,12 +15,12 @@ export default function LandingPage() {
               <div className="flex flex-col gap-8 lg:w-1/2">
                 <div className="space-y-4">
                   <h1 className="text-slate-900 dark:text-white text-5xl md:text-6xl font-black leading-[1.1] tracking-tight">
-                    Convert anything to everything
+                    Modern, browser-based PDF processing
                   </h1>
                   <p className="text-slate-600 dark:text-slate-400 text-lg md:text-xl leading-relaxed max-w-xl">
-                    Professional-grade file conversion for over 300+ formats.
-                    Fast, secure, and entirely in your browser. No software
-                    installation required.
+                    A full-stack project built with Next.js and Supabase to
+                    demonstrate file manipulation, storage management, and
+                    scalable API design. No sign-up required, try it now.
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -83,43 +83,18 @@ export default function LandingPage() {
           <div className="container mx-auto">
             <div className="mb-16 max-w-2xl">
               <h2 className="text-primary font-bold tracking-widest uppercase text-sm mb-4">
-                Supported Formats
+                Supported Features
               </h2>
               <h3 className="text-3xl md:text-4xl font-black mb-6">
-                One Tool, Infinite Possibilities
+                Everything you need, in one place
               </h3>
               <p className="text-slate-600 dark:text-slate-400 text-lg">
-                Our powerful engine handles even the most complex file
-                structures with ease, ensuring zero data loss during conversion.
+                Our powerful engine handles your files securely in the browser
+                and via fast serverless functions, ensuring high quality and
+                zero data loss.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* PDF Tools */}
-              <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hover:border-primary/50 transition-all group">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-                  <span className="material-symbols-outlined text-primary group-hover:text-white">
-                    picture_as_pdf
-                  </span>
-                </div>
-                <h4 className="text-xl font-bold mb-3">PDF Tools</h4>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Merge, split, compress, and edit PDFs instantly without
-                  quality loss.
-                </p>
-              </div>
-              {/* Word Documents */}
-              <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hover:border-primary/50 transition-all group">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-                  <span className="material-symbols-outlined text-primary group-hover:text-white">
-                    description
-                  </span>
-                </div>
-                <h4 className="text-xl font-bold mb-3">Word & Office</h4>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Convert DOCX, XLSX, and PPTX to any format while maintaining
-                  formatting.
-                </p>
-              </div>
               {/* Image Processing */}
               <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hover:border-primary/50 transition-all group">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
@@ -127,23 +102,52 @@ export default function LandingPage() {
                     image
                   </span>
                 </div>
-                <h4 className="text-xl font-bold mb-3">Image Suite</h4>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Batch resize and convert JPG, PNG, WebP, SVG, and RAW photo
-                  formats.
+                <h4 className="text-xl font-bold mb-3">Image Converter</h4>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                  Batch convert JPG, PNG, and WebP formats instantly. Fast,
+                  secure, and optimized.
                 </p>
               </div>
-              {/* Media Engine */}
+
+              {/* Merge PDF */}
               <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hover:border-primary/50 transition-all group">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
                   <span className="material-symbols-outlined text-primary group-hover:text-white">
-                    movie
+                    library_books
                   </span>
                 </div>
-                <h4 className="text-xl font-bold mb-3">Media Engine</h4>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Optimize and convert video and audio files for any device or
-                  platform.
+                <h4 className="text-xl font-bold mb-3">Merge PDF</h4>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                  Combine multiple PDFs into a single document in the exact
+                  order you need them.
+                </p>
+              </div>
+
+              {/* Split PDF */}
+              <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hover:border-primary/50 transition-all group">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+                  <span className="material-symbols-outlined text-primary group-hover:text-white">
+                    call_split
+                  </span>
+                </div>
+                <h4 className="text-xl font-bold mb-3">Split PDF</h4>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                  {`Extract pages, delete the ones you don't need, and reorganize
+                  your PDFs visually.`}
+                </p>
+              </div>
+
+              {/* Nuevas Funciones (Watermark / Rotate) */}
+              <div className="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hover:border-primary/50 transition-all group">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+                  <span className="material-symbols-outlined text-primary group-hover:text-white">
+                    branding_watermark
+                  </span>
+                </div>
+                <h4 className="text-xl font-bold mb-3">Edit PDFs</h4>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                  Add custom watermarks, text, images, and sign your documents
+                  professionally.
                 </p>
               </div>
             </div>
@@ -298,7 +302,7 @@ export default function LandingPage() {
         </section>
 
         {/* Newsletter/CTA Section */}
-        <section className="px-6 lg:px-40 py-20">
+        {/* <section className="px-6 lg:px-40 py-20">
           <div className="container mx-auto">
             <div className="bg-primary rounded-3xl p-12 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-12">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
@@ -319,6 +323,38 @@ export default function LandingPage() {
                 >
                   Create Free Account
                 </Link>
+              </div>
+            </div>
+          </div>
+        </section> */}
+
+        <section className="px-6 lg:px-40 py-20" id="code">
+          <div className="container mx-auto">
+            <div className="bg-primary rounded-3xl p-12 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-12 shadow-2xl shadow-primary/20">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
+              <div className="relative z-10 lg:max-w-xl text-center lg:text-left">
+                <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+                  Curious about the code?
+                </h2>
+                <p className="text-primary/10 text-slate-100 text-lg">
+                  Dive into the GitHub repository to explore the Next.js
+                  architecture, Supabase backend integration, and the inner
+                  workings of this serverless application.
+                </p>
+              </div>
+              <div className="relative z-10 w-full lg:w-auto">
+                <a
+                  href="https://github.com/WalterMartinez20/app-files-converter-next.git"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-3 w-full lg:w-auto bg-white text-primary text-lg font-black px-10 py-5 rounded-2xl shadow-xl hover:bg-slate-50 transition-all hover:scale-105"
+                >
+                  <span className="material-symbols-outlined text-[28px]">
+                    code
+                  </span>
+                  View Source Code
+                </a>
               </div>
             </div>
           </div>

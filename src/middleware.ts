@@ -1,21 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const PROTECTED_ROUTES = ["/history", "/profile"];
+
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({ request });
@@ -27,38 +25,34 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  // Obtenemos el usuario de la sesión actual
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 1. RUTAS PROTEGIDAS (Solo registrados)
-  const protectedRoutes = ["/history", "/profile"];
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route),
+  const isAnonymous = user?.is_anonymous ?? false;
+  const pathname = request.nextUrl.pathname;
+
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route),
   );
 
-  if (isProtectedRoute && !user) {
-    // Si no está logueado, lo mandamos al login
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+  if (isProtectedRoute && (!user || isAnonymous)) {
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // 2. RUTAS DE AUTH (Solo visitantes)
   if (
     user &&
-    (request.nextUrl.pathname.startsWith("/auth/login") ||
-      request.nextUrl.pathname.startsWith("/auth/signup"))
+    !isAnonymous &&
+    (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/signup"))
   ) {
-    // Si YA está logueado, no tiene sentido que vea el login, lo mandamos al dashboard
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return supabaseResponse;
 }
 
-// Configuración de en qué rutas debe correr este middleware (ignora imágenes y estáticos para ahorrar recursos)
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next|favicon.ico).*)"],
 };

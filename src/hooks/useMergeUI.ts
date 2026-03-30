@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { usePdfTools } from "./usePdfTools";
+import { toast } from "react-hot-toast";
 
 export function useMergeUI() {
   const {
@@ -60,11 +61,19 @@ export function useMergeUI() {
       100,
     );
 
+    const loadingToast = toast.loading("🔗 Uniendo PDFs...");
     setIsMerging(true);
+
     const success = await handleMergePdfs(pdfFiles);
     setIsMerging(false);
+    toast.dismiss(loadingToast);
 
-    if (success) setPdfFiles([]);
+    if (success) {
+      toast.success("PDFs unidos con éxito.");
+      setPdfFiles([]);
+    } else {
+      toast.error("Error al unir los PDFs.");
+    }
   };
 
   return {

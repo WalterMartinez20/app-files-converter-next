@@ -7,6 +7,7 @@ import type { User, Session } from "@supabase/supabase-js";
 type AuthContextType = {
   user: User | null;
   session: Session | null;
+  isAnonymous: boolean;
   isLoading: boolean;
 };
 
@@ -14,6 +15,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
+  isAnonymous: false,
   isLoading: true,
 });
 
@@ -23,15 +25,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
+  const handleSession = (session: Session | null) => {
+    const user = session?.user ?? null;
+
+    // detectar si es anónimo
+    const isAnonymous = user?.is_anonymous ?? false;
+
+    setSession(session);
+
+    // SOLO guardas usuario si NO es anónimo
+    setUser(!isAnonymous ? user : null);
+
+    setIsLoading(false);
+
+    return isAnonymous;
+  };
+
   useEffect(() => {
     // 1. Obtener la sesión actual al cargar
     const getSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+
+      handleSession(session);
     };
 
     getSession();
@@ -40,16 +57,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+      handleSession(session);
     });
 
     return () => subscription.unsubscribe();
   }, [supabase]);
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, session, isAnonymous: !user && !!session, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );
