@@ -1,5 +1,51 @@
 import Link from "next/link";
 
+interface FooterLinkGroup {
+  title: string;
+  links: { label: string; href: string }[];
+}
+
+const FOOTER_GROUPS: FooterLinkGroup[] = [
+  {
+    title: "Product",
+    links: [
+      { label: "Features", href: "/#features" },
+      { label: "How It Works", href: "/#how-it-works" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "Source Code", href: "/#code" },
+    ],
+  },
+  {
+    title: "PDF Tools",
+    links: [
+      { label: "Image Converter", href: "/tools/image-converter" },
+      { label: "Merge PDF", href: "/tools/merge-pdf" },
+      { label: "Organize PDF", href: "/tools/organize-pdf" },
+      { label: "Edit PDF", href: "/tools/edit-pdf" },
+      { label: "Split PDF", href: "/tools/split-pdf" },
+      { label: "Protect PDF", href: "/tools/protect-pdf" },
+      { label: "Unlock PDF", href: "/tools/unlock-pdf" },
+      { label: "Add Numbers", href: "/tools/number-pdf" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { label: "Help Center", href: "/help-center" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+];
+
 export const Footer = () => {
   return (
     <footer className="px-6 lg:px-40 py-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark mt-auto w-full font-display">
@@ -22,172 +68,31 @@ export const Footer = () => {
             </h2>
           </Link>
           <p className="text-slate-500 text-sm leading-relaxed mb-6">
-            The ultimate tool for all your file conversion needs. Private,
-            secure, and blazingly fast.
+            The ultimate tool for all your file conversion and PDF needs.
+            Private, secure, and blazingly fast directly in your browser.
           </p>
-          {/* <div className="flex gap-4">
-            <Link
-              href="#"
-              className="text-slate-400 hover:text-primary transition-colors"
-            >
-              <span className="material-symbols-outlined">public</span>
-            </Link>
-            <Link
-              href="#"
-              className="text-slate-400 hover:text-primary transition-colors"
-            >
-              <span className="material-symbols-outlined">share</span>
-            </Link>
-          </div> */}
         </div>
 
-        {/* Columna 2: Product */}
-        <div>
-          <h5 className="font-bold mb-6 text-slate-900 dark:text-slate-100">
-            Product
-          </h5>
-          <ul className="space-y-4 text-sm text-slate-500">
-            <li>
-              <Link
-                href="/#features"
-                className="hover:text-primary transition-colors"
-              >
-                Features
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#how-it-works"
-                className="hover:text-primary transition-colors"
-              >
-                How It Works
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/#pricing"
-                className="hover:text-primary transition-colors"
-              >
-                Pricing
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/#code"
-                className="hover:text-primary transition-colors"
-              >
-                Code
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Columna 3: Tools & Formats (Actualizado) */}
-        <div>
-          <h5 className="font-bold mb-6 text-slate-900 dark:text-slate-100">
-            Tools
-          </h5>
-          <ul className="space-y-4 text-sm text-slate-500">
-            <li>
-              <Link
-                href="/dashboard"
-                className="hover:text-primary transition-colors"
-              >
-                Image Converter
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/tools/edit-pdf"
-                className="hover:text-primary transition-colors"
-              >
-                Edit PDF
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/tools/merge-pdf"
-                className="hover:text-primary transition-colors"
-              >
-                Merge PDF
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/tools/split-pdf"
-                className="hover:text-primary transition-colors"
-              >
-                Split PDF
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Columna 4: Company */}
-        <div>
-          <h5 className="font-bold mb-6 text-slate-900 dark:text-slate-100">
-            Company
-          </h5>
-          <ul className="space-y-4 text-sm text-slate-500">
-            <li>
-              <Link
-                href="/about"
-                className="hover:text-primary transition-colors"
-              >
-                About Us
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/privacy"
-                className="hover:text-primary transition-colors"
-              >
-                Privacy
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="terms"
-                className="hover:text-primary transition-colors"
-              >
-                Terms
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        {/* Columna 5: Support */}
-        <div>
-          <h5 className="font-bold mb-6 text-slate-900 dark:text-slate-100">
-            Support
-          </h5>
-          <ul className="space-y-4 text-sm text-slate-500">
-            <li>
-              <Link
-                href="help-center"
-                className="hover:text-primary transition-colors"
-              >
-                Help Center
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/faq"
-                className="hover:text-primary transition-colors"
-              >
-                FAQ
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/contact"
-                className="hover:text-primary transition-colors"
-              >
-                Contact
-              </Link>
-            </li>
-          </ul>
-        </div>
+        {/* Dynamic Link Groups */}
+        {FOOTER_GROUPS.map((group) => (
+          <div key={group.title}>
+            <h5 className="font-bold mb-6 text-slate-900 dark:text-slate-100">
+              {group.title}
+            </h5>
+            <ul className="space-y-3.5 text-sm text-slate-500">
+              {group.links.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
 
       <div className="container mx-auto mt-12 pt-8 border-t border-slate-200 dark:border-slate-800 text-center text-slate-400 text-xs">

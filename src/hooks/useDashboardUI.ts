@@ -9,6 +9,7 @@ export function useDashboardUI() {
     handleUploadAndConvert,
     downloadFile,
     removeConversionFromHistory,
+    clearAllConversions,
     isLoading,
   } = useConversions();
 
@@ -22,16 +23,45 @@ export function useDashboardUI() {
   );
 
   const handleFilesSelected = (files: FileList | null) => {
-    if (!files) return;
+    if (!files || files.length === 0) {
+      toast.error("No file was selected");
+      return;
+    }
+
+    const MAX_SIZE_MB = 100;
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+    const validFiles: typeof newFiles = [];
+    const allowedExtensions = ["jpg", "jpeg", "png", "webp", "pdf"];
+
+    const isImageFile = (f: File) =>
+      f.type.startsWith("image/") ||
+      /\.(jpe?g|png|webp|gif|bmp|svg|avif|ico|jfif)$/i.test(f.name);
 
     const newFiles = Array.from(files).map((f) => ({
       id: Math.random().toString(36).substring(7),
       file: f,
       originalFormat: f.name.split(".").pop()?.toLowerCase() || "img",
       targetFormat: "jpg",
+      previewUrl: isImageFile(f) ? URL.createObjectURL(f) : undefined,
     }));
 
-    setStagedFiles((prev) => [...prev, ...newFiles]);
+    newFiles.forEach((stagedFile) => {
+      const ext = stagedFile.originalFormat;
+      if (!allowedExtensions.includes(ext) && !stagedFile.file.type.startsWith("image/") && stagedFile.file.type !== "application/pdf") {
+        toast.error(`"${stagedFile.file.name}" is not a supported format (JPG, PNG, WEBP, PDF).`);
+        return;
+      }
+      if (stagedFile.file.size > MAX_SIZE_BYTES) {
+        toast.error(`"${stagedFile.file.name}" exceeds the ${MAX_SIZE_MB}MB limit.`);
+      } else {
+        validFiles.push(stagedFile);
+      }
+    });
+
+    if (validFiles.length > 0) {
+      setStagedFiles((prev) => [...prev, ...validFiles]);
+    }
+    
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -41,24 +71,26 @@ export function useDashboardUI() {
     );
   };
 
+  const clearStagedFiles = () => {
+    setStagedFiles([]);
+  };
+
   const removeStagedFile = (id: string) => {
-    setStagedFiles((prev) => prev.filter((f) => f.id !== id));
+    setStagedFiles((prev) => {
+      const fileToRemove = prev.find((f) => f.id === id);
+      if (fileToRemove?.previewUrl) {
+        URL.revokeObjectURL(fileToRemove.previewUrl);
+      }
+      return prev.filter((f) => f.id !== id);
+    });
   };
 
   const handleConvertAll = async () => {
+    if (stagedFiles.length === 0) {
+      toast.error("Please add files to convert first");
+      return;
+    }
     setIsUploading(true);
-    setTimeout(
-      () =>
-        document
-          .getElementById("conversions-queue")
-          ?.scrollIntoView({ behavior: "smooth" }),
-      100,
-    );
-
-    // 1. Iniciamos el Toast de carga (mostrando cuántas imágenes son)
-    const loadingToast = toast.loading(
-      `🖼️ Convirtiendo ${stagedFiles.length} imagen(es)...`,
-    );
 
     try {
       await Promise.all(
@@ -67,14 +99,16 @@ export function useDashboardUI() {
         ),
       );
 
-      // 2. Si el Promise.all termina bien, mostramos éxito
-      toast.dismiss(loadingToast);
-      toast.success("Conversión completada con éxito.");
+      toast.success("Conversions completed successfully!", { id: "conversion-success", duration: 5000 });
+      // Limpiar URLs antes de vaciar
+      stagedFiles.forEach(f => f.previewUrl && URL.revokeObjectURL(f.previewUrl));
       setStagedFiles([]); // Limpiamos la zona de subida
-    } catch (error) {
-      // 3. Si algo falla, mostramos el error
-      toast.dismiss(loadingToast);
-      toast.error("Ocurrió un error al convertir las imágenes.");
+
+      setTimeout(() => {
+        document.getElementById("conversions-queue")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 150);
+    } catch {
+      toast.error("An error occurred while converting the files.", { id: "conversion-error", duration: 5000 });
     } finally {
       setIsUploading(false);
     }
@@ -85,12 +119,14 @@ export function useDashboardUI() {
     isLoading,
     downloadFile,
     removeConversionFromHistory,
+    clearAllConversions,
     stagedFiles,
     isUploading,
     fileInputRef,
     handleFilesSelected,
     updateTargetFormat,
     removeStagedFile,
+    clearStagedFiles,
     handleConvertAll,
     hasHistory,
   };

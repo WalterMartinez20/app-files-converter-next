@@ -14,13 +14,13 @@ export default function AboutPage() {
 
           <div className="space-y-6 text-slate-600 dark:text-slate-400 leading-relaxed">
             <p>
-              FileConvert is a full-stack portfolio project developed to
+              FileConvert is a portfolio project developed to
               demonstrate advanced capabilities in modern web engineering,
               specifically focusing on seamless file manipulation and scalable
               backend architecture.
             </p>
             <p>
-              Developed by an engineering student at Gerardo Barrios University
+              Developed by a Systems Engineering student at Universidad Gerardo Barrios
               in El Salvador, this application serves as a practical
               implementation of cutting-edge technologies. It showcases the
               integration of Next.js, React, and Tailwind CSS on the frontend,
@@ -40,10 +40,10 @@ export default function AboutPage() {
             <div className="mt-10 pt-8 border-t border-slate-200 dark:border-primary/20">
               <Link
                 href="/"
-                className="text-primary font-bold hover:underline flex items-center gap-2"
+                className="group inline-flex items-center gap-3 px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-full font-bold transition-all hover:-translate-x-1 w-fit"
               >
-                <span className="material-symbols-outlined">arrow_back</span>
-                Back to App
+                <span className="material-symbols-outlined text-xl transition-transform group-hover:-translate-x-1">arrow_back</span>
+                Back to Home
               </Link>
             </div>
           </div>

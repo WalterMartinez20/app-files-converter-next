@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 
 type AuthContextType = {
   user: User | null;
@@ -56,9 +56,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // 2. Escuchar cambios (login, logout, token refresh)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      handleSession(session);
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        handleSession(session);
+      },
+    );
 
     return () => subscription.unsubscribe();
   }, [supabase]);

@@ -15,7 +15,7 @@ export const Sidebar = () => {
       </div>
       <nav className="flex-1 px-4 space-y-1">
         <Link
-          href="/dashboard"
+          href="/tools/image-converter"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-colors"
         >
           <span className="material-symbols-outlined">auto_fix_high</span>

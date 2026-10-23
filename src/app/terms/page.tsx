@@ -58,9 +58,9 @@ export default function TermsPage() {
             <div className="mt-10 pt-8 border-t border-slate-200 dark:border-primary/20">
               <Link
                 href="/"
-                className="text-primary font-bold hover:underline flex items-center gap-2"
+                className="group inline-flex items-center gap-3 px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-full font-bold transition-all hover:-translate-x-1 w-fit"
               >
-                <span className="material-symbols-outlined">arrow_back</span>
+                <span className="material-symbols-outlined text-xl transition-transform group-hover:-translate-x-1">arrow_back</span>
                 Back to Home
               </Link>
             </div>

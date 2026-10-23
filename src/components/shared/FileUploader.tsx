@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 
 interface FileUploaderProps {
   onFilesSelected: (files: FileList | null) => void;
@@ -24,9 +25,91 @@ export const FileUploader = ({
   hasHistory = false,
 }: FileUploaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
+
+  const validateAndProcessFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) {
+      toast.error("No file was selected");
+      return;
+    }
+
+    const fileList = Array.from(files);
+
+    if (!multiple && fileList.length > 1) {
+      toast.error("Only one file can be selected at a time");
+      return;
+    }
+
+    const oversizedFile = fileList.find((f) => f.size > MAX_FILE_SIZE_BYTES);
+    if (oversizedFile) {
+      toast.error(`"${oversizedFile.name}" exceeds the 100 MB size limit`);
+      return;
+    }
+
+    if (accept) {
+      const allowedPatterns = accept
+        .split(",")
+        .map((s) => s.trim().toLowerCase());
+
+      const invalidFile = fileList.find((f) => {
+        const name = f.name.toLowerCase();
+        const type = f.type.toLowerCase();
+        return !allowedPatterns.some((pattern) => {
+          if (pattern.startsWith(".")) {
+            return name.endsWith(pattern);
+          }
+          if (pattern.endsWith("/*")) {
+            const prefix = pattern.replace("/*", "");
+            return type.startsWith(prefix);
+          }
+          return type === pattern;
+        });
+      });
+
+      if (invalidFile) {
+        toast.error(`"${invalidFile.name}" is not a supported file format`);
+        return;
+      }
+    }
+
+    onFilesSelected(files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files) {
+      validateAndProcessFiles(e.dataTransfer.files);
+    }
+  };
 
   return (
-    <div className="w-full bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/20 overflow-hidden shadow-xl shadow-black/5">
+    <div
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`w-full bg-white dark:bg-primary/5 rounded-xl border transition-all duration-300 overflow-hidden shadow-xl shadow-black/5 ${
+        isDragging
+          ? "border-primary border-2 border-dashed bg-primary/5 dark:bg-primary/10 scale-[1.005]"
+          : "border-slate-200 dark:border-primary/20"
+      }`}
+    >
       <div
         className={`flex flex-col items-center justify-center text-center transition-all duration-500 ${hasHistory ? "py-10" : "p-12 md:p-24"}`}
       >
@@ -35,7 +118,10 @@ export const FileUploader = ({
           className="hidden"
           ref={fileInputRef}
           multiple={multiple}
-          onChange={(e) => onFilesSelected(e.target.files)}
+          onChange={(e) => {
+            validateAndProcessFiles(e.target.files);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+          }}
           accept={accept}
         />
 
@@ -46,26 +132,7 @@ export const FileUploader = ({
         >
           {isProcessing ? (
             <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <span className="material-symbols-outlined animate-spin text-2xl text-white">sync</span>
               Processing...
             </>
           ) : (

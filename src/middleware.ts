@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_ROUTES = ["/history", "/profile"];
+const PROTECTED_ROUTES = ["/profile"];
+const DISABLED_ROUTES = ["/history", "/auth/login", "/auth/signup", "/profile"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -37,9 +38,17 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtectedRoute && (!user || isAnonymous)) {
-    const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("redirectTo", pathname);
+    const loginUrl = new URL("/tools/image-converter", request.url);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Deshabilitar rutas que no usaremos por ahora
+  const isDisabledRoute = DISABLED_ROUTES.some((route) =>
+    pathname.startsWith(route),
+  );
+
+  if (isDisabledRoute) {
+    return NextResponse.redirect(new URL("/tools/image-converter", request.url));
   }
 
   if (
@@ -47,7 +56,7 @@ export async function middleware(request: NextRequest) {
     !isAnonymous &&
     (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/signup"))
   ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/tools/image-converter", request.url));
   }
 
   return supabaseResponse;

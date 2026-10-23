@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Usamos el Service Role Key para tener permisos de administrador
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error("Supabase URL and Service Role Key are required for admin operations");
+  }
+  return createClient(url, key);
+}
+
+export async function GET() {
   try {
+    const supabaseAdmin = getAdminClient();
     // 1. Calcular la fecha límite
     const timeLimit = new Date();
 
@@ -55,8 +61,9 @@ export async function GET(request: Request) {
     return NextResponse.json({
       message: `Successfully deleted ${oldConversions.length} old conversions.`,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Cron Cleanup Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

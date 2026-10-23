@@ -27,7 +27,7 @@ export async function DELETE(
     await supabase.from("conversions").delete().eq("id", id);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }

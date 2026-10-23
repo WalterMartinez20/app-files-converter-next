@@ -2,9 +2,11 @@
 
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useAuthForm } from "@/hooks/useAuthForm";
-export default function SignupPage() {
+
+function SignupForm() {
   const {
     email,
     setEmail,
@@ -16,7 +18,6 @@ export default function SignupPage() {
     isLoading,
     success,
     handleSignup,
-    redirectTo,
     isAuthLoading,
     user,
     isAnonymous,
@@ -161,5 +162,13 @@ export default function SignupPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   );
 }

@@ -1,24 +1,41 @@
-import { Conversion } from "./conversion"; // importamos la interface base
+// src/types/ui.ts
+
+import { Conversion } from "./conversion";
 
 export interface StagedFile {
   id: string;
   file: File;
   originalFormat: string;
   targetFormat: string;
+  previewUrl?: string;
 }
 
 export interface PdfPageData {
   id: string;
+  fileIndex: number;
   originalIndex: number;
-  thumbnailUrl?: string; // ✨ NUEVO: La URL de la imagen de la página
-  isLoadingThumbnail: boolean; // ✨ NUEVO: Estado de carga individual
+  rotation: number;
+  isBlank: boolean;
+  thumbnailUrl?: string;
+  isLoadingThumbnail: boolean;
 }
 
-// types de la cola de conversion
+export type PageItem = PdfPageData;
+
+export interface MergeFile {
+  id: string;
+  file: File;
+  previewUrl?: string;
+  rotation?: number;
+  numPages?: number;
+}
+
 export interface ConversionsQueueProps {
   conversions: Conversion[];
   isLoading: boolean;
   onDownload: (path: string, name: string) => void;
   onDelete: (id: string) => void;
-  variant?: "image" | "pdf"; // Para saber si pintarlo azul (imágenes) o rojo (PDFs)
+  onClearAll?: () => void;
+  /** Controls accent color: "image" = blue, "pdf" = red */
+  variant?: "image" | "pdf";
 }

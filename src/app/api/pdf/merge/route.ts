@@ -1,54 +1,104 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, degrees } from "pdf-lib";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
-    // Recibimos un arreglo con las rutas de los PDFs que el usuario subió
-    const { files } = await request.json();
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!files || files.length < 2) {
+    const contentType = request.headers.get("content-type") || "";
+    const pdfBuffers: { buffer: ArrayBuffer; rotation?: number }[] = [];
+    let originalFileName = "Merged_Document.pdf";
+    let pathsToDelete: string[] = [];
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const files = formData.getAll("files") as File[];
+      const rotationsRaw = formData.get("rotations") as string;
+      const rotations: number[] = rotationsRaw ? JSON.parse(rotationsRaw) : [];
+
+      if (!files || files.length < 2) {
+        return NextResponse.json(
+          { error: "Need at least 2 PDFs to merge" },
+          { status: 400 },
+        );
+      }
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        pdfBuffers.push({
+          buffer: await file.arrayBuffer(),
+          rotation: rotations[i] || 0,
+        });
+      }
+
+      const firstCleanName = files[0]?.name
+        ?.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9.-]/g, "_");
+      originalFileName = firstCleanName ? `Merged_${firstCleanName}` : "Merged_Document.pdf";
+    } else {
+      const { files } = await request.json();
+
+      if (!files || files.length < 2) {
+        return NextResponse.json(
+          { error: "Need at least 2 PDFs to merge" },
+          { status: 400 },
+        );
+      }
+
+      pathsToDelete = files.map((f: { storagePath: string }) => f.storagePath);
+
+      for (const file of files) {
+        const { data, error } = await supabase.storage
+          .from("files")
+          .download(file.storagePath);
+        if (error || !data) continue;
+
+        const arrayBuffer = await data.arrayBuffer();
+        pdfBuffers.push({
+          buffer: arrayBuffer,
+          rotation: file.rotation || 0,
+        });
+      }
+    }
+
+    if (pdfBuffers.length < 2) {
       return NextResponse.json(
-        { error: "Need at least 2 PDFs to merge" },
+        { error: "At least 2 valid PDF documents are required to merge." },
         { status: 400 },
       );
     }
 
     // 1. Creamos un PDF en blanco donde pegaremos todas las páginas
     const mergedPdf = await PDFDocument.create();
-    let totalSize = 0;
 
-    // 2. Descargamos y unimos cada PDF en orden
-    for (const file of files) {
-      const { data, error } = await supabase.storage
-        .from("files")
-        .download(file.storagePath);
-      if (error || !data) continue; // Si uno falla, lo saltamos y seguimos con el resto
-
-      const arrayBuffer = await data.arrayBuffer();
-      totalSize += arrayBuffer.byteLength;
-
-      const pdfToMerge = await PDFDocument.load(arrayBuffer);
+    // 2. Unimos cada PDF en orden
+    for (const item of pdfBuffers) {
+      const pdfToMerge = await PDFDocument.load(item.buffer, { ignoreEncryption: true });
       const copiedPages = await mergedPdf.copyPages(
         pdfToMerge,
         pdfToMerge.getPageIndices(),
       );
 
-      // Pegamos las páginas copiadas en nuestro PDF maestro
-      copiedPages.forEach((page) => mergedPdf.addPage(page));
+      copiedPages.forEach((page) => {
+        if (item.rotation) {
+          page.setRotation(degrees(item.rotation));
+        }
+        mergedPdf.addPage(page);
+      });
+    }
+
+    if (mergedPdf.getPageCount() === 0) {
+      throw new Error("Cannot save an empty merged PDF document");
     }
 
     // 3. Guardamos el PDF final
     const mergedPdfBytes = await mergedPdf.save();
-    const mergedFileName = `merged_${Date.now()}.pdf`; // Este ya es seguro porque no usa el nombre del usuario
+    const mergedFileName = `merged_${Date.now()}.pdf`;
 
     // 4. Subimos el nuevo documento unificado a Supabase
     const { error: uploadError } = await supabase.storage
@@ -59,13 +109,13 @@ export async function POST(request: Request) {
 
     if (uploadError) throw uploadError;
 
-    // 5. Creamos el registro en la tabla 'conversions' (Ya con status 'completed')
+    // 5. Creamos el registro en la tabla 'conversions' (Permite usuarios registrados e invitados)
     const { data: dbRecord, error: dbError } = await supabase
       .from("conversions")
       .insert([
         {
-          user_id: user.id,
-          file_name: "Merged_Document.pdf",
+          user_id: user?.id || null,
+          file_name: originalFileName,
           original_format: "pdf (multiple)",
           target_format: "pdf",
           file_size: mergedPdfBytes.byteLength,
@@ -78,16 +128,16 @@ export async function POST(request: Request) {
 
     if (dbError) throw dbError;
 
-    // 6. LIMPIEZA: Borramos los PDFs individuales originales para ahorrar espacio
-    const pathsToDelete = files.map(
-      (f: { storagePath: string }) => f.storagePath,
-    );
-    await supabase.storage.from("files").remove(pathsToDelete);
+    // 6. LIMPIEZA si se usó almacenamiento intermedio
+    if (pathsToDelete.length > 0) {
+      await supabase.storage.from("files").remove(pathsToDelete);
+    }
 
     return NextResponse.json({ success: true, conversion: dbRecord });
   } catch (error: unknown) {
     const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+      error instanceof Error ? error.message : "Unknown error in merge";
+    console.error("Merge error:", errorMessage);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

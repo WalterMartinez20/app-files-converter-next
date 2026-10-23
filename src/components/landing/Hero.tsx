@@ -6,7 +6,7 @@ import { FileDropzone } from "@/components/converter/FileDropzone";
 import { useConversions } from "@/hooks/useConversions";
 
 export const Hero = () => {
-  const { conversions, handleUploadAndConvert, isAuthenticated } =
+  const { conversions, handleUploadAndConvert } =
     useConversions();
   // For simplicity in the landing page, we default to PDF. In a real app,
   // you might want a small dropdown here or redirect them to the dashboard.
@@ -35,7 +35,7 @@ export const Hero = () => {
               </p>
             </div>
 
-            {/* Si no está autenticado, le sugerimos registrarse */}
+            {/* Si no está autenticado, le sugerimos registrarse
             {!isAuthenticated && (
               <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10 flex items-center gap-4 max-w-md">
                 <span className="material-symbols-outlined text-amber-500">
@@ -50,6 +50,7 @@ export const Hero = () => {
                 </p>
               </div>
             )}
+            */}
           </div>
 
           {/* Right Column: Interactive Dropzone */}
@@ -66,7 +67,7 @@ export const Hero = () => {
                 <h4 className="text-sm font-bold mb-3 flex items-center justify-between">
                   <span>Recent Conversions</span>
                   <Link
-                    href="/dashboard"
+                    href="/tools/image-converter"
                     className="text-xs text-primary hover:underline"
                   >
                     View Dashboard

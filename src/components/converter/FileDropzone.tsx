@@ -3,6 +3,9 @@
 // * arrastrar archivo o hacer clic para abrir el explorador de archivos
 
 import React, { useCallback, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 export const FileDropzone = ({
   onFileSelect,
@@ -11,6 +14,18 @@ export const FileDropzone = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const validateAndSelect = useCallback((file: File) => {
+    if (file.size === 0) {
+      toast.error(`The file "${file.name}" is empty.`);
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`The file "${file.name}" exceeds the 100 MB maximum size limit.`);
+      return;
+    }
+    onFileSelect(file);
+  }, [onFileSelect]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -27,16 +42,17 @@ export const FileDropzone = ({
       e.preventDefault();
       setIsDragging(false);
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        onFileSelect(e.dataTransfer.files[0]);
+        validateAndSelect(e.dataTransfer.files[0]);
       }
     },
-    [onFileSelect],
+    [validateAndSelect],
   );
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      onFileSelect(e.target.files[0]);
+      validateAndSelect(e.target.files[0]);
     }
+    e.target.value = "";
   };
 
   return (
@@ -64,7 +80,7 @@ export const FileDropzone = ({
           </span>
         </div>
         <h3 className="text-xl font-bold mb-1">
-          {isDragging ? "Suelta el archivo aquí" : "Drag & Drop Files Here"}
+          {isDragging ? "Drop your file here" : "Drag & Drop Files Here"}
         </h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 text-center max-w-sm">
           Support for PDF, DOCX, JPG, PNG, and more. <br />

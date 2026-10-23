@@ -3,7 +3,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
-import { PDFDocument } from "pdf-lib"; // <-- NUEVA LIBRERÍA
+import { PDFDocument } from "pdf-lib";
+import { execFile } from "child_process";
+import { promisify } from "util";
+import fs from "fs/promises";
+import path from "path";
+import os from "os";
+
+const execFileAsync = promisify(execFile);
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -50,16 +57,46 @@ export async function POST(request: Request) {
     if (["webp", "png", "jpg", "jpeg", "gif", "avif"].includes(targetFormat)) {
       contentType = `image/${targetFormat === "jpg" ? "jpeg" : targetFormat}`;
 
+      let inputImageBuffer = buffer;
+
+      // Si el archivo origen es un PDF, renderizamos sus páginas a imagen usando Python PyMuPDF
+      if (originalExt === "pdf") {
+        const tempDir = os.tmpdir();
+        const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        const tempInputPdf = path.join(tempDir, `input_${uniqueId}.pdf`);
+        const tempOutputPng = path.join(tempDir, `output_${uniqueId}.png`);
+
+        try {
+          await fs.writeFile(tempInputPdf, buffer);
+          const scriptPath = path.join(process.cwd(), "src", "lib", "python", "pdf_to_image.py");
+          const { stdout, stderr } = await execFileAsync("python", [
+            scriptPath,
+            tempInputPdf,
+            tempOutputPng,
+            "150",
+          ]);
+
+          if (!stdout.includes("SUCCESS")) {
+            throw new Error(stderr || stdout || "PDF to Image conversion script failed");
+          }
+
+          inputImageBuffer = await fs.readFile(tempOutputPng);
+        } finally {
+          await fs.unlink(tempInputPdf).catch(() => {});
+          await fs.unlink(tempOutputPng).catch(() => {});
+        }
+      }
+
       if (targetFormat === "webp") {
-        processedBuffer = await sharp(buffer).webp({ quality: 80 }).toBuffer();
+        processedBuffer = await sharp(inputImageBuffer).webp({ quality: 80 }).toBuffer();
       } else if (targetFormat === "png") {
-        processedBuffer = await sharp(buffer).png().toBuffer();
+        processedBuffer = await sharp(inputImageBuffer).png().toBuffer();
       } else if (targetFormat === "gif") {
-        processedBuffer = await sharp(buffer).gif().toBuffer();
+        processedBuffer = await sharp(inputImageBuffer).gif().toBuffer();
       } else if (targetFormat === "avif") {
-        processedBuffer = await sharp(buffer).avif({ quality: 80 }).toBuffer();
+        processedBuffer = await sharp(inputImageBuffer).avif({ quality: 80 }).toBuffer();
       } else {
-        processedBuffer = await sharp(buffer).jpeg({ quality: 85 }).toBuffer();
+        processedBuffer = await sharp(inputImageBuffer).jpeg({ quality: 85 }).toBuffer();
       }
     }
     // =========================================================

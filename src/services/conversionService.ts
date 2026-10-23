@@ -1,4 +1,5 @@
 import { Conversion, CreateConversionDTO } from "@/types/conversion";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 const API_URL = "/api/conversions";
 
@@ -19,7 +20,7 @@ export const conversionService = {
     return res.json();
   },
 
-  async uploadFile(file: File, supabase: any): Promise<string> {
+  async uploadFile(file: File, supabase: SupabaseClient): Promise<string> {
     // ✨ LIMPIEZA: Quitamos tildes, eñes y cambiamos espacios/símbolos por guiones bajos
     const safeName = file.name
       .normalize("NFD")
